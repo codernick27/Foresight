@@ -20,13 +20,13 @@ def edge_detection(frame):
     https://learnopencv.com/edge-detection-using-opencv/
     """
     # Convert to grayscale
-    img_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    gray_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     # Blur the image for better edge detection
-    img_blur = cv.GaussianBlur(img_gray, (3, 3), 0)
+    blur_frame = cv.GaussianBlur(gray_frame, (3, 3), 0)
 
     # Canny Edge Detection
     # Thresholds can be tweaked in order to increase accuracy.
-    edges = cv.Canny(image=img_blur, threshold1=10,
+    edges = cv.Canny(image=blur_frame, threshold1=10,
                      threshold2=50)
 
     # Displaying the frame with canny edge detection in another window
