@@ -65,53 +65,50 @@ class OpticalFlow:
         self.mask = np.zeros_like(self.old_frame)
 
     def lk_optical_flow(self, frame):
-        """
-        Processing for Lucas Kankade Optical Flow
-        """
-        # Lucas-Kanade Optical Flow Starts
-        # https://www.geeksforgeeks.org/python-opencv-optical-flow-with-lucas-kanade-method/?ref=lbp
-        frame_gray = cv.cvtColor(frame,
-                                 cv.COLOR_BGR2GRAY)
+    """
+    Processing for Lucas Kankade Optical Flow
+    """
+    # Lucas-Kanade Optical Flow Starts
+    # https://www.geeksforgeeks.org/python-opencv-optical-flow-with-lucas-kanade-method/?ref=lbp
+    gray_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
-        # calculate optical flow
-        p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray,
-                                              frame_gray,
+    # calculate optical flow
+    new_points, status, err = cv.calcOpticalFlowPyrLK(self.old_gray,
+                                              gray_frame,
                                               self.p0, None,
                                               **self.lk_params)
 
-        # Select good points
+    # Select good points
 
-        if p1 is None:
-            self.p0 = cv.goodFeaturesToTrack(self.old_gray, mask=None,
-                                             **self.feature_params)
-            p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray,
-                                                  frame_gray,
+    if new_points is None:
+        self.p0 = cv.goodFeaturesToTrack(self.old_gray, mask=None,
+                                         **self.feature_params)
+        new_points, status, err = cv.calcOpticalFlowPyrLK(self.old_gray,
+                                                  gray_frame,
                                                   self.p0, None,
                                                   **self.lk_params)
-            # clear the mask
-            self.mask = np.zeros_like(self.old_frame)
+        # clear the mask
+        self.mask = np.zeros_like(self.old_frame)
 
-        good_new = p1[st == 1]
-        good_old = self.p0[st == 1]
+    good_new = new_points[status == 1]
+    good_old = self.p0[status == 1]
 
-        # draw the tracks
-        for i, (new, old) in enumerate(zip(good_new,
-                                           good_old)):
-            a, b = new.ravel()
-            c, d = old.ravel()
-            self.mask = cv.line(self.mask, (int(a), int(b)), (int(c), int(d)),
-                                self.color[i].tolist(), 2)
+    # draw the tracks
+    for i, (new, old) in enumerate(zip(good_new,
+                                       good_old)):
+        a, b = new.ravel()
+        c, d = old.ravel()
+        self.mask = cv.line(self.mask, (int(a), int(b)), (int(c), int(d)),
+                            self.color[i].tolist(), 2)
+        frame = cv.circle(frame, (int(a), int(b)), 5,
+                          self.color[i].tolist(), -1)
 
-            frame = cv.circle(frame, (int(a), int(b)), 5,
-                              self.color[i].tolist(), -1)
+    img = cv.add(frame, self.mask)
+    cv.imshow('Optical Flow', img)
 
-        img = cv.add(frame, self.mask)
-
-        cv.imshow('Optical Flow', img)
-
-        # Updating Previous frame and points
-        self.old_gray = frame_gray.copy()
-        self.p0 = good_new.reshape(-1, 1, 2)
+    # Now update the previous frame and previous points
+    self.old_gray = gray_frame.copy()
+    self.p0 = good_new.reshape(-1, 1, 2)
 
 
 class Midas_Depth:
